@@ -448,7 +448,7 @@ const TABLE = 'toyoda todos';
 /* ===================== 状態 ===================== */
 let tasks     = [];
 let filter    = 'all';
-let tagFilter = null;
+let tagFilter = new Set();
 let formTags  = new Set();
 
 /* ===================== DOM ===================== */
@@ -566,16 +566,12 @@ TAGS.forEach(tag => {
   btn.style.borderColor = tag.color;
   btn.dataset.tag = tag.id;
   btn.addEventListener('click', () => {
-    if (tagFilter === tag.id) {
-      tagFilter = null;
+    if (tagFilter.has(tag.id)) {
+      tagFilter.delete(tag.id);
       btn.classList.remove('active');
       btn.style.background = 'transparent';
     } else {
-      tagFilter = tag.id;
-      document.querySelectorAll('.tag-filter-btn').forEach(b => {
-        b.classList.remove('active');
-        b.style.background = 'transparent';
-      });
+      tagFilter.add(tag.id);
       btn.classList.add('active');
       btn.style.background = TAG_MAP[tag.id].bg;
     }
@@ -781,7 +777,7 @@ function render() {
 
   const filtered = tasks.filter(t => {
     const sOk = filter === 'all' || t.status === filter;
-    const tOk = !tagFilter || (t.tags || []).includes(tagFilter);
+    const tOk = tagFilter.size === 0 || (t.tags || []).some(tag => tagFilter.has(tag));
     return sOk && tOk;
   });
 
