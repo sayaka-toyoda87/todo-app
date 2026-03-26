@@ -376,6 +376,105 @@
       font-size: .9rem;
       padding: 30px 0 14px;
     }
+
+    /* ===================== スマホ対応 ===================== */
+    @media (max-width: 540px) {
+      body {
+        padding: 0;
+        align-items: stretch;
+        background: #fff;
+      }
+
+      .container {
+        border-radius: 0;
+        box-shadow: none;
+        padding: 20px 16px 40px;
+        max-width: 100%;
+      }
+
+      h1 { font-size: 1.25rem; margin-bottom: 18px; }
+
+      /* フォーム */
+      .form-card {
+        padding: 14px 12px;
+        gap: 9px;
+        margin-bottom: 16px;
+      }
+
+      .form-row label { font-size: .75rem; width: 40px; }
+
+      .form-row input[type="text"],
+      .form-row input[type="date"],
+      .form-row select {
+        font-size: 1rem; /* iOS zoom防止 */
+        padding: 9px 13px;
+      }
+
+      .tag-toggle {
+        font-size: .75rem;
+        padding: 5px 12px; /* タップしやすく */
+      }
+
+      .add-btn {
+        font-size: 1rem;
+        padding: 13px;
+      }
+
+      /* フィルター */
+      .filter-row button {
+        font-size: .8rem;
+        padding: 7px 13px;
+      }
+
+      .tag-filter-btn {
+        font-size: .75rem;
+        padding: 5px 12px;
+      }
+
+      /* タスクカード */
+      li {
+        padding: 12px 10px;
+        gap: 9px;
+      }
+
+      li input[type="checkbox"] {
+        width: 22px;
+        height: 22px;
+      }
+
+      .task-title { font-size: 1rem; }
+
+      .badge       { font-size: .72rem; padding: 3px 10px; }
+      .tag-badge   { font-size: .72rem; padding: 3px 9px; }
+      .status-select { font-size: .8rem; padding: 4px 8px; }
+
+      .due-label,
+      .add-tag-btn,
+      .add-due-btn { font-size: .75rem; padding: 4px 10px; }
+
+      .delete-btn {
+        font-size: 1rem;
+        padding: 4px 7px;
+      }
+
+      /* タグピッカーを画面幅に合わせる */
+      .tag-picker {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        border-radius: 16px 16px 0 0;
+        padding: 16px;
+        gap: 8px;
+        z-index: 50;
+        box-shadow: 0 -4px 20px rgba(0,137,123,.15);
+      }
+
+      .tag-picker-item {
+        font-size: .82rem;
+        padding: 7px 16px;
+      }
+    }
   </style>
 </head>
 <body>
