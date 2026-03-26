@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TODOリスト</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Hiragino Maru Gothic ProN', 'BIZ UDPGothic', sans-serif;
+      background: linear-gradient(135deg, #d0f0eb 0%, #a8ddd5 50%, #b2e8e0 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 16px;
+      overflow-y: scroll;
+    }
+
+    .container {
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 8px 32px rgba(0,137,123,.13);
+      padding: 36px 32px;
+      width: 100%;
+      max-width: 520px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.55rem;
+      color: #00897b;
+      margin-bottom: 28px;
+      letter-spacing: .05em;
+    }
+
+    /* ---- フォーム ---- */
+    .form-card {
+      background: #e0f2f120;
+      border: 1.5px solid #b2dfdb;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .form-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-row label {
+      font-size: .78rem;
+      color: #00897b;
+      width: 46px;
+      flex-shrink: 0;
+    }
+
+    .form-row input[type="text"],
+    .form-row input[type="date"],
+    .form-row select {
+      flex: 1;
+      padding: 8px 14px;
+      border: 1.5px solid #80cbc4;
+      border-radius: 50px;
+      font-size: .9rem;
+      font-family: inherit;
+      outline: none;
+      color: #333;
+      background: #fff;
+      transition: border-color .2s;
+    }
+
+    .form-row input::placeholder { color: #80cbc4; }
+    .form-row input:focus,
+    .form-row select:focus { border-color: #00897b; }
+
+    .tag-toggle-group { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; }
+
+    .tag-toggle {
+      font-size: .73rem;
+      font-weight: bold;
+      padding: 3px 11px;
+      border-radius: 50px;
+      border: 1.5px solid;
+      cursor: pointer;
+      font-family: inherit;
+      opacity: .4;
+      background: transparent;
+      transition: opacity .15s, background .15s;
+    }
+    .tag-toggle.on { opacity: 1; }
+
+    .add-btn {
+      width: 100%;
+      padding: 10px;
+      background: linear-gradient(135deg, #00897b, #26a69a);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      font-size: .93rem;
+      font-family: inherit;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(0,137,123,.28);
+      transition: transform .15s, box-shadow .15s;
+      letter-spacing: .04em;
+    }
+    .add-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 14px rgba(0,137,123,.38); }
+
+    /* ---- フィルター ---- */
+    .filter-section { margin-bottom: 18px; display: flex; flex-direction: column; gap: 8px; }
+
+    .filter-row {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .filter-row button {
+      padding: 5px 14px;
+      border-radius: 50px;
+      border: 1.5px solid #80cbc4;
+      background: transparent;
+      color: #00897b;
+      font-size: .78rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .filter-row button.active,
+    .filter-row button:hover { background: #00897b; color: #fff; border-color: #00897b; }
+
+    .tag-filter-row {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      flex-wrap: wrap;
+      min-height: 26px;
+      align-items: center;
+    }
+
+    .tag-filter-btn {
+      font-size: .73rem;
+      font-weight: bold;
+      padding: 3px 12px;
+      border-radius: 50px;
+      border: 1.5px solid;
+      cursor: pointer;
+      font-family: inherit;
+      opacity: .4;
+      background: transparent;
+      transition: opacity .15s;
+    }
+    .tag-filter-btn.active { opacity: 1; }
+
+    .stats {
+      text-align: center;
+      font-size: .78rem;
+      color: #26a69a;
+      margin-bottom: 16px;
+      min-height: 1.2em;
+    }
+
+    /* ---- グループ見出し ---- */
+    .group-label {
+      font-size: .76rem;
+      font-weight: bold;
+      color: #fff;
+      padding: 4px 14px;
+      border-radius: 50px;
+      margin: 16px 0 9px;
+      width: fit-content;
+    }
+    .group-label.urgent { background: linear-gradient(135deg,#e53935,#ef9a9a); }
+    .group-label.normal { background: linear-gradient(135deg,#00897b,#4db6ac); }
+
+    /* ---- タスクカード ---- */
+    ul { list-style: none; }
+
+    li {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: start;
+      gap: 10px;
+      padding: 12px 11px;
+      border-radius: 13px;
+      margin-bottom: 7px;
+      border: 1.5px solid #b2dfdb;
+      background: #e0f2f112;
+      animation: slideIn .2s ease;
+    }
+    @keyframes slideIn { from { opacity:0; transform:translateY(-5px); } to { opacity:1; transform:translateY(0); } }
+
+    li.urgent-card { border-color: #ffcdd2; background: #fff3e010; }
+    li.status-done   { opacity: .5; background: #f5f5f5; border-color: #e0e0e0; }
+    li.status-cancel { opacity: .42; background: #f5f5f5; border-color: #e0e0e0; }
+
+    /* チェックボックス */
+    li input[type="checkbox"] {
+      appearance: none; -webkit-appearance: none;
+      width: 20px; height: 20px;
+      border: 2px solid #80cbc4;
+      border-radius: 50%;
+      cursor: pointer;
+      position: relative;
+      margin-top: 2px;
+      flex-shrink: 0;
+      transition: background .15s, border-color .15s;
+    }
+    li input[type="checkbox"]:checked { background: #00897b; border-color: #00897b; }
+    li input[type="checkbox"]:checked::after {
+      content:'';
+      position:absolute;
+      left:4px; top:1px;
+      width:7px; height:10px;
+      border:2px solid #fff;
+      border-top:none; border-left:none;
+      transform:rotate(40deg);
+    }
+
+    /* 本文エリア */
+    .task-body { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+
+    .task-title {
+      font-size: .93rem;
+      color: #333;
+      word-break: break-all;
+      line-height: 1.4;
+      cursor: text;
+      border-radius: 5px;
+      padding: 1px 4px;
+      margin: -1px -4px;
+      transition: background .15s;
+    }
+    .task-title:hover { background: #e0f2f150; }
+
+    .task-title-edit {
+      font-size: .93rem;
+      font-family: inherit;
+      color: #333;
+      border: 1.5px solid #00897b;
+      border-radius: 8px;
+      padding: 2px 8px;
+      outline: none;
+      width: 100%;
+      background: #f0faf9;
+    }
+
+    li.status-done .task-title,
+    li.status-cancel .task-title { text-decoration: line-through; color: #bbb; }
+
+    .task-meta { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+
+    /* ステータスバッジ */
+    .badge {
+      font-size: .68rem;
+      padding: 2px 9px;
+      border-radius: 50px;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+    .badge-todo     { background: #e0f2f1; color: #00897b; }
+    .badge-progress { background: #e3f2fd; color: #1565c0; }
+    .badge-done     { background: #e8f5e9; color: #2e7d32; }
+    .badge-cancel   { background: #eeeeee; color: #757575; }
+
+    .status-select {
+      font-size: .7rem;
+      padding: 2px 7px;
+      border: 1px solid #80cbc4;
+      border-radius: 50px;
+      font-family: inherit;
+      background: #fff;
+      color: #00897b;
+      cursor: pointer;
+      outline: none;
+    }
+
+    /* タグバッジ */
+    .tag-badge {
+      font-size: .68rem;
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: 50px;
+      border: 1.5px solid;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+    .tag-badge:hover { opacity: .65; }
+
+    /* 期日 */
+    .due-label {
+      font-size: .7rem;
+      color: #aaa;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .due-label.soon   { color: #f57c00; font-weight: bold; }
+    .due-label.overdue{ color: #c62828; font-weight: bold; }
+
+    /* インラインアクションボタン群 */
+    .add-tag-btn,
+    .add-due-btn {
+      font-size: .68rem;
+      padding: 2px 9px;
+      border-radius: 50px;
+      border: 1px dashed #80cbc4;
+      background: transparent;
+      color: #80cbc4;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .add-tag-btn:hover,
+    .add-due-btn:hover { background: #e0f2f1; color: #00897b; border-style: solid; }
+
+    .inline-date-edit {
+      font-size: .7rem;
+      font-family: inherit;
+      border: 1.5px solid #00897b;
+      border-radius: 8px;
+      padding: 2px 6px;
+      outline: none;
+      background: #f0faf9;
+    }
+
+    /* タグピッカー */
+    .tag-picker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      padding: 8px 10px;
+      background: #fff;
+      border: 1.5px solid #80cbc4;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,137,123,.13);
+      position: absolute;
+      z-index: 20;
+    }
+    .tag-picker-item {
+      font-size: .72rem;
+      font-weight: bold;
+      padding: 3px 11px;
+      border-radius: 50px;
+      border: 1.5px solid;
+      cursor: pointer;
+      font-family: inherit;
+      opacity: .42;
+      background: transparent;
+    }
+    .tag-picker-item.on { opacity: 1; }
+
+    /* 削除ボタン */
+    .delete-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: .88rem;
+      color: #80cbc4;
+      padding: 2px 5px;
+      border-radius: 7px;
+      transition: color .15s, background .15s;
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+    .delete-btn:hover { color: #00897b; background: #e0f2f1; }
+
+    .empty {
+      text-align: center;
+      color: #80cbc4;
+      font-size: .9rem;
+      padding: 30px 0 14px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>✿ TODOリスト</h1>
+
+  <!-- 入力フォーム -->
+  <div class="form-card">
+    <div class="form-row">
+      <label>タスク</label>
+      <input type="text" id="titleInput" placeholder="新しいタスクを入力..." maxlength="120">
+    </div>
+    <div class="form-row">
+      <label>期日</label>
+      <input type="date" id="dueInput">
+    </div>
+    <div class="form-row">
+      <label>状態</label>
+      <select id="statusInput">
+        <option value="todo">未着手</option>
+        <option value="progress">進捗中</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>タグ</label>
+      <div class="tag-toggle-group" id="formTagGroup"></div>
+    </div>
+    <button class="add-btn" id="addBtn">＋ タスクを追加</button>
+  </div>
+
+  <!-- フィルター -->
+  <div class="filter-section">
+    <div class="filter-row">
+      <button class="active" data-filter="all">すべて</button>
+      <button data-filter="todo">未着手</button>
+      <button data-filter="progress">進捗中</button>
+      <button data-filter="done">完了</button>
+      <button data-filter="cancel">中止</button>
+    </div>
+    <div class="tag-filter-row" id="tagFilterRow"></div>
+  </div>
+
+  <div class="stats" id="stats"></div>
+  <div id="taskArea"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+/* ===================== 定数 ===================== */
+const TAGS = [
+  { id:'SL',   color:'#7c4dff', bg:'#ede7f6' },
+  { id:'AF',   color:'#0288d1', bg:'#e1f5fe' },
+  { id:'SU',   color:'#00897b', bg:'#e0f2f1' },
+  { id:'M',    color:'#f57c00', bg:'#fff3e0' },
+  { id:'個人', color:'#00695c', bg:'#b2dfdb' },
+];
+const TAG_MAP = Object.fromEntries(TAGS.map(t => [t.id, t]));
+
+const STATUS_LABEL = { todo:'未着手', progress:'進捗中', done:'完了', cancel:'中止' };
+const STATUS_BADGE = { todo:'badge-todo', progress:'badge-progress', done:'badge-done', cancel:'badge-cancel' };
+
+/* ===================== Supabase ===================== */
+const { createClient } = supabase;
+const sb    = createClient(
+  'https://upcfbmhmqaizldmphxmt.supabase.co',
+  'sb_publishable_eBDjYtYR1cwnhZw4A4GoWQ_N2ubbDv5'
+);
+const TABLE = 'toyoda todos';
+
+/* ===================== 状態 ===================== */
+let tasks     = [];
+let filter    = 'all';
+let tagFilter = null;
+let formTags  = new Set();
+
+/* ===================== DOM ===================== */
+const titleInput  = document.getElementById('titleInput');
+const dueInput    = document.getElementById('dueInput');
+const statusInput = document.getElementById('statusInput');
+const addBtn      = document.getElementById('addBtn');
+const taskArea    = document.getElementById('taskArea');
+const statsEl     = document.getElementById('stats');
+const formTagGroup= document.getElementById('formTagGroup');
+const tagFilterRow= document.getElementById('tagFilterRow');
+
+/* ===================== ユーティリティ ===================== */
+function today() { return new Date().toISOString().slice(0,10); }
+
+function isUrgent(t) {
+  if (!t.due || t.status==='done' || t.status==='cancel') return false;
+  const diff = (new Date(t.due) - new Date(today())) / 86400000;
+  return diff >= 0 && diff <= 3;
+}
+function isOverdue(t) {
+  if (!t.due || t.status==='done' || t.status==='cancel') return false;
+  return t.due < today();
+}
+function dueText(t) {
+  if (!t.due) return '';
+  if (isOverdue(t)) return `期限切れ (${t.due})`;
+  const d = Math.round((new Date(t.due) - new Date(today())) / 86400000);
+  if (d === 0) return '今日まで';
+  if (d === 1) return '明日まで';
+  return `${t.due} まで`;
+}
+
+/* ===================== エラートースト ===================== */
+function showError(msg) {
+  let el = document.getElementById('toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'toast';
+    el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#b71c1c;color:#fff;padding:10px 22px;border-radius:50px;font-size:.84rem;z-index:999;box-shadow:0 4px 14px rgba(0,0,0,.2)';
+    document.body.appendChild(el);
+  }
+  el.textContent = '⚠ ' + msg;
+  el.style.display = 'block';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+/* ===================== DB 操作 ===================== */
+async function dbLoad() {
+  statsEl.textContent = '読み込み中…';
+  const { data, error } = await sb
+    .from(TABLE)
+    .select('id, title, status, due, tags')
+    .order('id');
+  if (error) { showError(error.message); statsEl.textContent=''; return; }
+  tasks = data.map(r => ({ ...r, tags: r.tags || [] }));
+  render();
+}
+
+async function dbInsert(task) {
+  const { data, error } = await sb
+    .from(TABLE)
+    .insert({ title: task.title, status: task.status, due: task.due, tags: task.tags })
+    .select('id, title, status, due, tags')
+    .single();
+  if (error) {
+    showError(error.message);
+    tasks = tasks.filter(t => t._tmp !== task._tmp);
+    render();
+    return;
+  }
+  const idx = tasks.findIndex(t => t._tmp === task._tmp);
+  if (idx !== -1) tasks[idx] = { ...data, tags: data.tags || [] };
+  render();
+}
+
+async function dbUpdate(id, fields) {
+  const { error } = await sb.from(TABLE).update(fields).eq('id', id);
+  if (error) showError(error.message);
+}
+
+async function dbDelete(id) {
+  const { error } = await sb.from(TABLE).delete().eq('id', id);
+  if (error) showError(error.message);
+}
+
+/* ===================== タグトグル（フォーム） ===================== */
+TAGS.forEach(tag => {
+  const btn = document.createElement('button');
+  btn.className = 'tag-toggle';
+  btn.textContent = tag.id;
+  btn.style.color = tag.color;
+  btn.style.borderColor = tag.color;
+  btn.addEventListener('click', () => {
+    if (formTags.has(tag.id)) {
+      formTags.delete(tag.id);
+      btn.classList.remove('on');
+      btn.style.background = 'transparent';
+    } else {
+      formTags.add(tag.id);
+      btn.classList.add('on');
+      btn.style.background = tag.bg;
+    }
+  });
+  formTagGroup.appendChild(btn);
+});
+
+/* ===================== タグフィルター ===================== */
+TAGS.forEach(tag => {
+  const btn = document.createElement('button');
+  btn.className = 'tag-filter-btn';
+  btn.textContent = tag.id;
+  btn.style.color = tag.color;
+  btn.style.borderColor = tag.color;
+  btn.dataset.tag = tag.id;
+  btn.addEventListener('click', () => {
+    if (tagFilter === tag.id) {
+      tagFilter = null;
+      btn.classList.remove('active');
+      btn.style.background = 'transparent';
+    } else {
+      tagFilter = tag.id;
+      document.querySelectorAll('.tag-filter-btn').forEach(b => {
+        b.classList.remove('active');
+        b.style.background = 'transparent';
+      });
+      btn.classList.add('active');
+      btn.style.background = TAG_MAP[tag.id].bg;
+    }
+    render();
+  });
+  tagFilterRow.appendChild(btn);
+});
+
+/* ===================== タスクカード生成 ===================== */
+function renderTask(task) {
+  const li = document.createElement('li');
+  li.classList.add(`status-${task.status}`);
+  if ((isUrgent(task) || isOverdue(task)) && task.status !== 'done' && task.status !== 'cancel') {
+    li.classList.add('urgent-card');
+  }
+
+  /* チェックボックス */
+  const cb = document.createElement('input');
+  cb.type = 'checkbox';
+  cb.checked = task.status === 'done';
+  cb.addEventListener('change', () => {
+    task.status = cb.checked ? 'done' : 'todo';
+    dbUpdate(task.id, { status: task.status });
+    render();
+  });
+
+  /* 本文エリア */
+  const body = document.createElement('div');
+  body.className = 'task-body';
+
+  /* タイトル（クリック編集） */
+  const titleEl = document.createElement('span');
+  titleEl.className = 'task-title';
+  titleEl.textContent = task.title;
+  titleEl.title = 'クリックして編集';
+  titleEl.addEventListener('click', () => {
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.className = 'task-title-edit';
+    inp.value = task.title;
+    titleEl.replaceWith(inp);
+    inp.focus(); inp.select();
+    function commit() {
+      const v = inp.value.trim();
+      if (v && v !== task.title) { task.title = v; dbUpdate(task.id, { title: v }); }
+      render();
+    }
+    inp.addEventListener('blur', commit);
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter')  { e.preventDefault(); inp.blur(); }
+      if (e.key === 'Escape') { inp.removeEventListener('blur', commit); render(); }
+    });
+  });
+
+  /* メタ行 */
+  const meta = document.createElement('div');
+  meta.className = 'task-meta';
+
+  /* ステータスバッジ */
+  const badge = document.createElement('span');
+  badge.className = `badge ${STATUS_BADGE[task.status]}`;
+  badge.textContent = STATUS_LABEL[task.status];
+
+  /* ステータス変更 */
+  const sel = document.createElement('select');
+  sel.className = 'status-select';
+  ['todo','progress','done','cancel'].forEach(s => {
+    const o = document.createElement('option');
+    o.value = s; o.textContent = STATUS_LABEL[s];
+    if (s === task.status) o.selected = true;
+    sel.appendChild(o);
+  });
+  sel.addEventListener('change', () => {
+    task.status = sel.value;
+    dbUpdate(task.id, { status: sel.value });
+    render();
+  });
+
+  meta.appendChild(badge);
+  meta.appendChild(sel);
+
+  /* タグバッジ（クリックで削除） */
+  (task.tags || []).forEach(tid => {
+    const tag = TAG_MAP[tid];
+    if (!tag) return;
+    const b = document.createElement('span');
+    b.className = 'tag-badge';
+    b.textContent = tag.id;
+    b.title = 'クリックで削除';
+    b.style.color = tag.color;
+    b.style.borderColor = tag.color;
+    b.style.background = tag.bg;
+    b.addEventListener('click', () => {
+      task.tags = task.tags.filter(t => t !== tid);
+      dbUpdate(task.id, { tags: task.tags });
+      render();
+    });
+    meta.appendChild(b);
+  });
+
+  /* タグ追加ボタン */
+  const addTagBtn = document.createElement('button');
+  addTagBtn.className = 'add-tag-btn';
+  addTagBtn.textContent = '+ タグ';
+  addTagBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    document.querySelectorAll('.tag-picker').forEach(p => p.remove());
+    const picker = document.createElement('div');
+    picker.className = 'tag-picker';
+    TAGS.forEach(tag => {
+      const item = document.createElement('button');
+      const has = (task.tags || []).includes(tag.id);
+      item.className = 'tag-picker-item' + (has ? ' on' : '');
+      item.textContent = tag.id;
+      item.style.color = tag.color;
+      item.style.borderColor = tag.color;
+      item.style.background = has ? tag.bg : 'transparent';
+      item.addEventListener('click', ev => {
+        ev.stopPropagation();
+        if (!task.tags) task.tags = [];
+        if (task.tags.includes(tag.id)) task.tags = task.tags.filter(t => t !== tag.id);
+        else task.tags.push(tag.id);
+        dbUpdate(task.id, { tags: task.tags });
+        render();
+      });
+      picker.appendChild(item);
+    });
+    meta.appendChild(picker);
+    setTimeout(() => {
+      document.addEventListener('click', function close() {
+        picker.remove();
+        document.removeEventListener('click', close);
+      });
+    }, 0);
+  });
+  meta.appendChild(addTagBtn);
+
+  /* 期日 */
+  if (task.due) {
+    const dueEl = document.createElement('span');
+    dueEl.className = 'due-label' + (isOverdue(task) ? ' overdue' : isUrgent(task) ? ' soon' : '');
+    dueEl.textContent = dueText(task);
+    dueEl.title = 'クリックして変更';
+    dueEl.addEventListener('click', () => openDuePicker(dueEl, task));
+    meta.appendChild(dueEl);
+  } else {
+    const addDueBtn = document.createElement('button');
+    addDueBtn.className = 'add-due-btn';
+    addDueBtn.textContent = '+ 期日';
+    addDueBtn.addEventListener('click', () => openDuePicker(addDueBtn, task));
+    meta.appendChild(addDueBtn);
+  }
+
+  body.appendChild(titleEl);
+  body.appendChild(meta);
+
+  /* 削除ボタン */
+  const del = document.createElement('button');
+  del.className = 'delete-btn';
+  del.textContent = '✕';
+  del.title = '削除';
+  del.addEventListener('click', () => {
+    tasks = tasks.filter(t => t.id !== task.id);
+    dbDelete(task.id);
+    render();
+  });
+
+  li.appendChild(cb);
+  li.appendChild(body);
+  li.appendChild(del);
+  return li;
+}
+
+function openDuePicker(anchor, task) {
+  const inp = document.createElement('input');
+  inp.type = 'date';
+  inp.className = 'inline-date-edit';
+  inp.value = task.due || '';
+  anchor.replaceWith(inp);
+  inp.focus();
+  function commit() {
+    task.due = inp.value || null;
+    dbUpdate(task.id, { due: task.due });
+    render();
+  }
+  inp.addEventListener('change', commit);
+  inp.addEventListener('blur', commit);
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { inp.removeEventListener('blur', commit); render(); }
+  });
+}
+
+/* ===================== レンダリング ===================== */
+function makeGroupLabel(text, cls) {
+  const d = document.createElement('div');
+  d.className = `group-label ${cls}`;
+  d.textContent = text;
+  return d;
+}
+
+function render() {
+  taskArea.innerHTML = '';
+
+  const filtered = tasks.filter(t => {
+    const sOk = filter === 'all' || t.status === filter;
+    const tOk = !tagFilter || (t.tags || []).includes(tagFilter);
+    return sOk && tOk;
+  });
+
+  const urgent = filtered.filter(t => isUrgent(t) || isOverdue(t));
+  const normal = filtered.filter(t => !isUrgent(t) && !isOverdue(t));
+
+  if (urgent.length) {
+    taskArea.appendChild(makeGroupLabel('⚠ 期限が迫っています', 'urgent'));
+    const ul = document.createElement('ul');
+    urgent.forEach(t => ul.appendChild(renderTask(t)));
+    taskArea.appendChild(ul);
+  }
+  if (normal.length) {
+    if (urgent.length) taskArea.appendChild(makeGroupLabel('その他のタスク', 'normal'));
+    const ul = document.createElement('ul');
+    normal.forEach(t => ul.appendChild(renderTask(t)));
+    taskArea.appendChild(ul);
+  }
+  if (!filtered.length) {
+    const e = document.createElement('div');
+    e.className = 'empty';
+    e.textContent = 'タスクがありません';
+    taskArea.appendChild(e);
+  }
+
+  const total = tasks.length;
+  const done  = tasks.filter(t => t.status === 'done').length;
+  const prog  = tasks.filter(t => t.status === 'progress').length;
+  statsEl.textContent = total
+    ? `全 ${total} 件 ／ 完了 ${done} 件 ／ 進捗中 ${prog} 件`
+    : '';
+}
+
+/* ===================== タスク追加 ===================== */
+async function addTask() {
+  const title = titleInput.value.trim();
+  if (!title) return;
+
+  const tmp = 'tmp_' + Date.now();
+  const task = {
+    _tmp: tmp, id: tmp,
+    title,
+    status: statusInput.value,
+    due:    dueInput.value || null,
+    tags:   [...formTags],
+  };
+
+  // フォームリセット
+  titleInput.value = '';
+  dueInput.value   = '';
+  statusInput.value = 'todo';
+  formTags.clear();
+  formTagGroup.querySelectorAll('.tag-toggle').forEach(b => {
+    b.classList.remove('on');
+    b.style.background = 'transparent';
+  });
+
+  tasks.push(task);
+  render();
+  dbInsert(task);
+}
+
+addBtn.addEventListener('click', addTask);
+
+document.querySelectorAll('.filter-row button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    filter = btn.dataset.filter;
+    document.querySelectorAll('.filter-row button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  });
+});
+
+/* ===================== 初期ロード ===================== */
+dbLoad();
+</script>
+</body>
+</html>
