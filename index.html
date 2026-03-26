@@ -9,30 +9,45 @@
 
     body {
       font-family: 'Hiragino Maru Gothic ProN', 'BIZ UDPGothic', sans-serif;
-      background: linear-gradient(135deg, #d0f0eb 0%, #a8ddd5 50%, #b2e8e0 100%);
+      background: linear-gradient(160deg, #d0f0eb 0%, #a8ddd5 60%, #b2e8e0 100%);
       min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 40px 16px;
       overflow-y: scroll;
     }
 
+    /* ---- PC: 2カラムレイアウト ---- */
     .container {
-      background: #fff;
-      border-radius: 24px;
-      box-shadow: 0 8px 32px rgba(0,137,123,.13);
-      padding: 36px 32px;
-      width: 100%;
-      max-width: 520px;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 300px;
+      flex-shrink: 0;
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(8px);
+      border-right: 1.5px solid #b2dfdb;
+      padding: 32px 24px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .main {
+      flex: 1;
+      padding: 32px 36px;
+      min-width: 0;
     }
 
     h1 {
-      text-align: center;
-      font-size: 1.55rem;
+      font-size: 1.35rem;
       color: #00897b;
-      margin-bottom: 28px;
+      margin-bottom: 22px;
       letter-spacing: .05em;
+      text-align: center;
     }
 
     /* ---- フォーム ---- */
@@ -116,13 +131,12 @@
 
     .filter-row {
       display: flex;
-      gap: 6px;
-      justify-content: center;
+      gap: 5px;
       flex-wrap: wrap;
     }
 
     .filter-row button {
-      padding: 5px 14px;
+      padding: 5px 13px;
       border-radius: 50px;
       border: 1.5px solid #80cbc4;
       background: transparent;
@@ -137,8 +151,7 @@
 
     .tag-filter-row {
       display: flex;
-      gap: 6px;
-      justify-content: center;
+      gap: 5px;
       flex-wrap: wrap;
       min-height: 26px;
       align-items: center;
@@ -378,29 +391,34 @@
     }
 
     /* ===================== スマホ対応 ===================== */
-    @media (max-width: 540px) {
-      body {
-        padding: 0;
-        align-items: stretch;
-        background: #fff;
-      }
+    @media (max-width: 700px) {
+      body { background: #fff; }
 
+      /* 1カラムに切り替え */
       .container {
-        border-radius: 0;
-        box-shadow: none;
-        padding: 20px 16px 40px;
-        max-width: 100%;
+        flex-direction: column;
+        min-height: 100vh;
       }
 
-      h1 { font-size: 1.25rem; margin-bottom: 18px; }
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: static;
+        border-right: none;
+        border-bottom: 1.5px solid #b2dfdb;
+        padding: 20px 16px 16px;
+        background: rgba(224,242,241,.5);
+        backdrop-filter: none;
+      }
+
+      .main {
+        padding: 16px 16px 40px;
+      }
+
+      h1 { font-size: 1.2rem; margin-bottom: 16px; }
 
       /* フォーム */
-      .form-card {
-        padding: 14px 12px;
-        gap: 9px;
-        margin-bottom: 16px;
-      }
-
+      .form-card { padding: 14px 12px; gap: 9px; margin-bottom: 14px; }
       .form-row label { font-size: .75rem; width: 40px; }
 
       .form-row input[type="text"],
@@ -410,115 +428,85 @@
         padding: 9px 13px;
       }
 
-      .tag-toggle {
-        font-size: .75rem;
-        padding: 5px 12px; /* タップしやすく */
-      }
-
-      .add-btn {
-        font-size: 1rem;
-        padding: 13px;
-      }
+      .tag-toggle    { font-size: .75rem; padding: 5px 12px; }
+      .add-btn       { font-size: 1rem; padding: 13px; }
 
       /* フィルター */
-      .filter-row button {
-        font-size: .8rem;
-        padding: 7px 13px;
-      }
-
-      .tag-filter-btn {
-        font-size: .75rem;
-        padding: 5px 12px;
-      }
+      .filter-row button { font-size: .8rem; padding: 7px 13px; }
+      .tag-filter-btn    { font-size: .75rem; padding: 5px 12px; }
 
       /* タスクカード */
-      li {
-        padding: 12px 10px;
-        gap: 9px;
-      }
-
-      li input[type="checkbox"] {
-        width: 22px;
-        height: 22px;
-      }
-
-      .task-title { font-size: 1rem; }
-
-      .badge       { font-size: .72rem; padding: 3px 10px; }
-      .tag-badge   { font-size: .72rem; padding: 3px 9px; }
+      li { padding: 12px 10px; gap: 9px; }
+      li input[type="checkbox"] { width: 22px; height: 22px; }
+      .task-title    { font-size: 1rem; }
+      .badge         { font-size: .72rem; padding: 3px 10px; }
+      .tag-badge     { font-size: .72rem; padding: 3px 9px; }
       .status-select { font-size: .8rem; padding: 4px 8px; }
-
       .due-label,
       .add-tag-btn,
-      .add-due-btn { font-size: .75rem; padding: 4px 10px; }
+      .add-due-btn   { font-size: .75rem; padding: 4px 10px; }
+      .delete-btn    { font-size: 1rem; padding: 4px 7px; }
 
-      .delete-btn {
-        font-size: 1rem;
-        padding: 4px 7px;
-      }
-
-      /* タグピッカーを画面幅に合わせる */
+      /* タグピッカーをボトムシートに */
       .tag-picker {
         position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
+        bottom: 0; left: 0; right: 0;
         border-radius: 16px 16px 0 0;
         padding: 16px;
         gap: 8px;
         z-index: 50;
         box-shadow: 0 -4px 20px rgba(0,137,123,.15);
       }
-
-      .tag-picker-item {
-        font-size: .82rem;
-        padding: 7px 16px;
-      }
+      .tag-picker-item { font-size: .82rem; padding: 7px 16px; }
     }
   </style>
 </head>
 <body>
 <div class="container">
-  <h1>✿ TODOリスト</h1>
+  <!-- サイドバー -->
+  <aside class="sidebar">
+    <h1>✿ TODOリスト</h1>
 
-  <!-- 入力フォーム -->
-  <div class="form-card">
-    <div class="form-row">
-      <label>タスク</label>
-      <input type="text" id="titleInput" placeholder="新しいタスクを入力..." maxlength="120">
+    <div class="form-card">
+      <div class="form-row">
+        <label>タスク</label>
+        <input type="text" id="titleInput" placeholder="新しいタスクを入力..." maxlength="120">
+      </div>
+      <div class="form-row">
+        <label>期日</label>
+        <input type="date" id="dueInput">
+      </div>
+      <div class="form-row">
+        <label>状態</label>
+        <select id="statusInput">
+          <option value="todo">未着手</option>
+          <option value="progress">進捗中</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>タグ</label>
+        <div class="tag-toggle-group" id="formTagGroup"></div>
+      </div>
+      <button class="add-btn" id="addBtn">＋ タスクを追加</button>
     </div>
-    <div class="form-row">
-      <label>期日</label>
-      <input type="date" id="dueInput">
-    </div>
-    <div class="form-row">
-      <label>状態</label>
-      <select id="statusInput">
-        <option value="todo">未着手</option>
-        <option value="progress">進捗中</option>
-      </select>
-    </div>
-    <div class="form-row">
-      <label>タグ</label>
-      <div class="tag-toggle-group" id="formTagGroup"></div>
-    </div>
-    <button class="add-btn" id="addBtn">＋ タスクを追加</button>
-  </div>
 
-  <!-- フィルター -->
-  <div class="filter-section">
-    <div class="filter-row">
-      <button class="active" data-filter="all">すべて</button>
-      <button data-filter="todo">未着手</button>
-      <button data-filter="progress">進捗中</button>
-      <button data-filter="done">完了</button>
-      <button data-filter="cancel">中止</button>
+    <div class="filter-section">
+      <div class="filter-row">
+        <button class="active" data-filter="all">すべて</button>
+        <button data-filter="todo">未着手</button>
+        <button data-filter="progress">進捗中</button>
+        <button data-filter="done">完了</button>
+        <button data-filter="cancel">中止</button>
+      </div>
+      <div class="tag-filter-row" id="tagFilterRow"></div>
     </div>
-    <div class="tag-filter-row" id="tagFilterRow"></div>
-  </div>
+  </aside>
 
-  <div class="stats" id="stats"></div>
-  <div id="taskArea"></div>
+  <!-- メインエリア -->
+  <main class="main">
+    <div class="stats" id="stats"></div>
+    <div id="taskArea"></div>
+  </main>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
